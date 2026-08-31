@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Content Opportunity Scoring</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      background: #f7f7f7;
+      color: #222;
+    }
+
+    header {
+      background: #111;
+      color: white;
+      padding: 60px 20px;
+    }
+
+    header .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h1 {
+      font-size: 42px;
+      margin-bottom: 15px;
+      line-height: 1.15;
+    }
+
+    header p {
+      font-size: 18px;
+      max-width: 750px;
+      color: #ddd;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 0 20px;
+    }
+
+    main {
+      padding: 40px 0;
+    }
+
+    section {
+      background: white;
+      margin-bottom: 25px;
+      padding: 30px;
+      border-radius: 10px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+
+    h3 {
+      margin-top: 25px;
+    }
+
+    .abstract {
+      border-left: 4px solid #111;
+      padding-left: 20px;
+    }
+
+    .highlight {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 25px 0;
+    }
+
+    .card {
+      background: #f1f1f1;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f1f1;
+    }
+
+    .best {
+      font-weight: bold;
+    }
+
+    ul {
+      padding-left: 25px;
+    }
+
+    .note {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+    }
+
+    a {
+      color: #111;
+      font-weight: bold;
+    }
+
+    footer {
+      background: #111;
+      color: #ddd;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 700px) {
+      h1 {
+        font-size: 32px;
+      }
+
+      .highlight {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 22px;
+      }
+
+      table {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="container">
+    <h1>Content Opportunity Scoring for Search Performance</h1>
+
+    <p>
+      A machine-learning approach for prioritising content pages
+      for human review and possible refresh.
+    </p>
+
+    <p>
+      FlyRank ML Internship Capstone
+    </p>
+  </div>
+</header>
+
+
+<main>
+<div class="container">
+
+
+<!-- ABSTRACT -->
+
+<section>
+  <h2>Abstract</h2>
+
+  <div class="abstract">
+
+    <p>
+      This project asks whether search-performance signals can be used
+      to identify content that may need review or refresh.
+    </p>
+
+    <p>
+      I compared Logistic Regression and Random Forest with a frozen
+      Week-4 baseline using a client-grouped holdout evaluation.
+    </p>
+
+    <p>
+      The Random Forest achieved 0.90 Precision@20 and 0.70 Precision@50,
+      while Logistic Regression achieved 0.70 and 0.68 respectively.
+    </p>
+
+    <p>
+      The baseline achieved 0.20 Precision@20 and 0.30 Precision@50.
+    </p>
+
+    <p>
+      The results suggest that the Random Forest can help prioritise a
+      small content-review queue, but the model is a decision-support
+      tool and does not prove that refreshing a page will improve its
+      search performance.
+    </p>
+
+  </div>
+</section>
+
+
+<!-- INTRODUCTION -->
+
+<section>
+  <h2>1. Introduction / Problem Statement</h2>
+
+  <p>
+    Content teams often have more pages to review than they have time
+    to inspect manually. This creates a practical prioritisation problem:
+    which pages should be looked at first?
+  </p>
+
+  <p>
+    This project focuses on Content Opportunity Scoring. The goal is to
+    rank pages using available search and content-performance signals so
+    that a content team can focus its limited review time on the highest
+    priority pages.
+  </p>
+
+  <p>
+    The system does not automatically decide that a page should be
+    refreshed. Instead, it produces a ranking that can support a human
+    review process.
+  </p>
+</section>
+
+
+<!-- DATA -->
+
+<section>
+  <h2>2. Data</h2>
+
+  <p>
+    The analysis uses the anonymized FlyRank ML Internship dataset.
+    The dataset contains 30,000 rows across 32 clients and 44 original
+    columns.
+  </p>
+
+  <p>
+    Six page-level signals were used as model features:
+  </p>
+
+  <ul>
+    <li>90-day impressions</li>
+    <li>Days since last update</li>
+    <li>Content age</li>
+    <li>Average search position</li>
+    <li>Click-through rate (CTR)</li>
+    <li>Engagement rate</li>
+  </ul>
+
+  <p>
+    For evaluation, a declining-page proxy was created from
+    <code>trend_direction</code>. Pages with a "down" trend were treated
+    as declining.
+  </p>
+
+  <div class="note">
+    This is an evaluation proxy. It does not mean that a page definitely
+    needs a refresh, and it does not measure whether refreshing a page
+    would improve performance.
+  </div>
+</section>
+
+
+<!-- METHODOLOGY -->
+
+<section>
+  <h2>3. Methodology</h2>
+
+  <h3>Models</h3>
+
+  <p>
+    Two machine-learning models were compared:
+  </p>
+
+  <ul>
+    <li>Logistic Regression</li>
+    <li>Random Forest</li>
+  </ul>
+
+  <p>
+    Both models were compared with the frozen Week-4 baseline.
+  </p>
+
+  <h3>Validation</h3>
+
+  <p>
+    A client-grouped 75/25 holdout split was used. This kept pages from
+    the same client together instead of allowing the same client to
+    appear in both training and testing.
+  </p>
+
+  <p>
+    The split contained 24 training clients and 8 test clients, with
+    zero client overlap.
+  </p>
+
+  <h3>Leakage control</h3>
+
+  <p>
+    Outcome-derived and identifying fields such as
+    <code>trend_direction</code>, <code>trend_pct</code>,
+    <code>client_id</code>, and <code>content_id</code> were not used
+    as model features.
+  </p>
+
+  <h3>Ranking</h3>
+
+  <p>
+    The Random Forest produces a probability score for the declining
+    class. Pages can then be ranked by this score to create a review
+    priority list.
+  </p>
+</section>
+
+
+<!-- RESULTS -->
+
+<section>
+  <h2>4. Results</h2>
+
+  <div class="highlight">
+
+    <div class="card">
+      <strong>0.90</strong>
+      Precision@20
+      <br>
+      Random Forest
+    </div>
+
+    <div class="card">
+      <strong>0.70</strong>
+      Precision@50
+      <br>
+      Random Forest
+    </div>
+
+    <div class="card">
+      <strong>0.20 → 0.90</strong>
+      Precision@20
+      <br>
+      Baseline → Random Forest
+    </div>
+
+  </div>
+
+
+  <table>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Precision@20</th>
+        <th>Precision@50</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <tr>
+        <td>Frozen Week-4 baseline</td>
+        <td>0.20</td>
+        <td>0.30</td>
+      </tr>
+
+      <tr>
+        <td>Logistic Regression</td>
+        <td>0.70</td>
+        <td>0.68</td>
+      </tr>
+
+      <tr class="best">
+        <td>Random Forest</td>
+        <td>0.90</td>
+        <td>0.70</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+
+  <h3>Feature importance</h3>
+
+  <table>
+
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Importance</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <tr>
+        <td>impressions_90d</td>
+        <td>0.308593</td>
+      </tr>
+
+      <tr>
+        <td>content_age_days</td>
+        <td>0.245507</td>
+      </tr>
+
+      <tr>
+        <td>avg_position</td>
+        <td>0.236044</td>
+      </tr>
+
+      <tr>
+        <td>ctr</td>
+        <td>0.104988</td>
+      </tr>
+
+      <tr>
+        <td>days_since_last_update</td>
+        <td>0.056217</td>
+      </tr>
+
+      <tr>
+        <td>engagement_rate</td>
+        <td>0.048650</td>
+      </tr>
+
+    </tbody>
+
+  </table>
+
+  <p>
+    The results show that Random Forest produced the strongest ranking
+    performance on the held-out client split.
+  </p>
+
+  <p>
+    90-day impressions had the highest feature importance, followed by
+    content age and average position.
+  </p>
+
+  <div class="note">
+    Feature importance describes how the model used the available
+    features. It should not be interpreted as evidence that changing
+    a feature will cause better search performance.
+  </div>
+
+</section>
+
+
+<!-- LIMITATIONS -->
+
+<section>
+  <h2>5. Limitations &amp; Honest Framing</h2>
+
+  <p>
+    The model was evaluated on one client-grouped holdout split.
+    The results therefore describe performance on this evaluation
+    split and should not be treated as a guarantee of future results.
+  </p>
+
+  <p>
+    The target is a proxy based on observed trend direction. It does
+    not directly measure whether a page should be refreshed.
+  </p>
+
+  <p>
+    The available timestamp information does not allow me to fully
+    prove that every feature window is non-overlapping with the label
+    window.
+  </p>
+
+  <p>
+    The model identifies patterns associated with declining pages.
+    It does not prove that refreshing a page will cause its search
+    performance to improve.
+  </p>
+
+  <p>
+    For these reasons, the model should be used for decision support
+    and human review rather than automatic content changes.
+  </p>
+</section>
+
+
+<!-- RECOMMENDATIONS -->
+
+<section>
+  <h2>6. Ranked Recommendations</h2>
+
+  <p>
+    The model output is intended to create a ranked review queue.
+    Pages with higher scores should generally be considered earlier
+    when review capacity is limited.
+  </p>
+
+  <ol>
+
+    <li>
+      <strong>Review high-scoring pages</strong> with meaningful search
+      visibility for a possible content refresh.
+    </li>
+
+    <li>
+      <strong>Review visible pages with weaker CTR</strong> for possible
+      metadata or content improvements.
+    </li>
+
+    <li>
+      <strong>Monitor moderate-score pages</strong> rather than changing
+      them immediately.
+    </li>
+
+    <li>
+      <strong>Leave stable pages alone</strong> unless there is another
+      clear editorial or business reason to review them.
+    </li>
+
+  </ol>
+
+  <h3>Human review</h3>
+
+  <p>
+    Before taking action, a reviewer should check the page context,
+    business importance, recent changes, seasonality, factual accuracy,
+    and whether there is a useful editorial improvement to make.
+  </p>
+
+  <h3>What should not be automated</h3>
+
+  <ul>
+    <li>Publishing content</li>
+    <li>Deleting content</li>
+    <li>Merging or redirecting pages</li>
+    <li>Legal or compliance decisions</li>
+    <li>Pricing decisions</li>
+    <li>Final brand or messaging decisions</li>
+  </ul>
+</section>
+
+
+<!-- REPRODUCIBILITY -->
+
+<section>
+  <h2>7. Reproducibility</h2>
+
+  <p>
+    The project was developed through the weekly notebooks in the
+    FlyRank ML Internship repository.
+  </p>
+
+  <ul>
+
+    <li>
+      Week 5 — model development and evaluation
+    </li>
+
+    <li>
+      Week 6 — validation and leakage audit
+    </li>
+
+    <li>
+      Week 7 — content action playbook
+    </li>
+
+    <li>
+      Capstone — final analysis
+    </li>
+
+  </ul>
+
+  <p>
+    The notebooks are stored under
+    <code>work/notebooks/</code>.
+  </p>
+
+  <p>
+    <a href="https://github.com/thar-26/flyrank-ml-internship-2026">
+      View the project repository
+    </a>
+  </p>
+</section>
+
+
+<!-- ACKNOWLEDGMENTS -->
+
+<section>
+  <h2>8. Acknowledgments &amp; Data Credit</h2>
+
+  <p>
+    Built on the FlyRank ML Internship dataset.
+  </p>
+
+  <p>
+    <a href="https://flyrank.ai/" target="_blank">
+      FlyRank
+    </a>
+  </p>
+</section>
+
+
+</div>
+</main>
+
+
+<footer>
+  <p>
+    FlyRank ML Internship Capstone · Content Opportunity Scoring
+  </p>
+</footer>
+
+</body>
+</html>
