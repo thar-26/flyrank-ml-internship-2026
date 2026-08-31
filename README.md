@@ -1,3 +1,48 @@
+# FlyRank Content Opportunity Scoring
+
+I built a machine-learning workflow to help content teams prioritise pages for human review.
+
+The project uses anonymized FlyRank search data and compares Logistic Regression and Random Forest with a Week-4 baseline.
+
+## Results
+
+| Model               | Precision@20 | Precision@50 |
+| ------------------- | -----------: | -----------: |
+| Week-4 baseline     |         0.20 |         0.30 |
+| Logistic Regression |         0.70 |         0.68 |
+| Random Forest       |     **0.90** |     **0.70** |
+
+## How it works
+
+```text
+Search data
+    ↓
+Feature selection
+    ↓
+Machine-learning model
+    ↓
+Rank pages
+    ↓
+Human review
+```
+
+The model uses impressions, content age, update age, average position, CTR and engagement rate.
+
+## Limitation
+
+The model identifies patterns associated with declining pages. It does not prove that refreshing a page will improve performance. Final content decisions should be made by a human.
+
+## AI transparency
+
+I used AI to help with coding, debugging and documentation. I ran and checked the experiments myself and made the final decisions about the results and limitations.
+
+## Research Paper
+
+[https://thar-26.github.io/flyrank-ml-internship-2026/](https://thar-26.github.io/flyrank-ml-internship-2026/)
+
+---
+
+
 # FlyRank ML Internship — Starter Repo
 
 **Applied Search Intelligence: Google Search Ranking & Discoverability**
